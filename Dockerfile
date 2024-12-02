@@ -2,11 +2,12 @@ FROM node:14
 
 WORKDIR /app
 
+COPY package*.json ./
+
+RUN npm install
+
 COPY . .
 
-RUN [ -f package.json ] && npm install || echo "No package.json, skipping npm install"
+EXPOSE 3000
 
-EXPOSE 8080
-
-CMD ["node", "app.js"]
-
+CMD ["node", "server.js"]
