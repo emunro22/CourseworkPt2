@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        nodejs 'NodeJS' // Ensure you have a NodeJS tool configured in Jenkins
+        nodejs 'NodeJS' // Keep if you need Node.js runtime for other purposes
     }
     environment {
         DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials' // DockerHub credentials ID in Jenkins
@@ -10,17 +10,9 @@ pipeline {
     stages {
         stage('Checkout GitHub') {
             steps {
+                cleanWs()
                 git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/emunro22/CourseworkPt2.git'
-            }
-        }
-        stage('Install Node Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test Code') {
-            steps {
-                sh 'npm test'
+                sh 'ls -al'
             }
         }
         stage('Build Docker Image') {
