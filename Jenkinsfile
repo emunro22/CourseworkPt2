@@ -1,48 +1,51 @@
 pipeline {
-  environment {
-    dockerimagename = "euanmunro/cw2-server" // Replace with your DockerHub image
-    dockerImage = ""
-  }
-  agent any
-  stages {
-    stage('Checkout Source') {
-      steps {
-        echo 'Cloning repository from GitHub...'
-        git 'https://github.com/emunro22/CourseworkPt2.git'
-      }
+    agent any
+    tools {
+        nodejs 'NodeJS' // Ensure you have a NodeJS tool configured in Jenkins
     }
-    stage('Build Docker Image') {
-      steps {
-        echo 'Building Docker image...'
-        script {
-          dockerImage = docker.build dockerimagename
+    environment {
+        DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials' // DockerHub credentials ID in Jenkins
+        DOCKER_HUB_REPO = 'euanmunro/cw2-server' // Replace with your DockerHub image
+    }
+    stages {
+        stage('Checkout GitHub') {
+            steps {
+                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/emunro22/CourseworkPt2.git'
+            }
         }
-      }
-    }
-    stage('Push Docker Image') {
-      environment {
-        registryCredential = 'dockerhub-credentials' // DockerHub credentials ID in Jenkins
-      }
-      steps {
-        echo 'Pushing Docker image to DockerHub...'
-        script {
-          docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
-            dockerImage.push("latest")
-          }
+        stage('Install Node Dependencies') {
+            steps {
+                sh 'npm install'
+            }
         }
-      }
-    }
-    stage('Deploy Application to Kubernetes') {
-      steps {
-        echo 'Deploying application to Kubernetes cluster...'
-        script {
-          // Run kubectl apply for deployment.yaml and service.yaml
-          sh '''
-          kubectl apply -f deployment.yaml
-          kubectl apply -f service.yaml
-          '''
+        stage('Test Code') {
+            steps {
+                sh 'npm test'
+            }
         }
-      }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:latest")
+                }
+            }
+        }
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKER_HUB_CREDENTIALS_ID}") {
+                        dockerImage.push('latest')
+                    }
+                }
+            }
+        }
     }
-  }
+    post {
+        success {
+            echo 'Build & Deploy completed successfully!'
+        }
+        failure {
+            echo 'Build & Deploy failed. Check logs.'
+        }
+    }
 }
