@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cw2-server-deployment
-  labels:
-    app: cw2-server
 spec:
-  replicas: 2  # Number of pods to create
+  replicas: 2
   selector:
     matchLabels:
       app: cw2-server
@@ -16,11 +14,13 @@ spec:
     spec:
       containers:
       - name: cw2-server
-        image: euanmunro/cw2-server:latest  # Use the correct DockerHub image
+        image: euanmunro/cw2-server:latest
         ports:
-        - containerPort: 8080  # Port exposed by your application
+        - containerPort: 8080
         env:
         - name: HOSTNAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+      imagePullSecrets:
+      - name: dockerhub-credentials
