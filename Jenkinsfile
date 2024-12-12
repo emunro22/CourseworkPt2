@@ -1,11 +1,11 @@
 pipeline {
     agent any
     tools {
-        nodejs 'NodeJS' // Node.js runtime for other purposes
+        nodejs 'NodeJS'
     }
     environment {
-        DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials' // DockerHub credentials ID in Jenkins
-        DOCKER_HUB_REPO = 'euanmunro/cw2-server' // DockerHub repository
+        DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_HUB_REPO = 'euanmunro/cw2-server'
     }
     stages {
         stage('Checkout GitHub') {
@@ -34,9 +34,11 @@ pipeline {
         stage('Install Kubectl') {
             steps {
                 sh '''
-                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    chmod +x kubectl
-                    mv kubectl $WORKSPACE/kubectl
+                    if [ ! -f "$WORKSPACE/kubectl" ]; then
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        mv kubectl $WORKSPACE/kubectl
+                    fi
                 '''
                 // Add kubectl to PATH
                 script {
