@@ -33,15 +33,15 @@ pipeline {
         }
         stage('Install Kubectl') {
             steps {
-                sh '''
-                    if [ ! -f "$WORKSPACE/kubectl" ]; then
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        mv kubectl "$WORKSPACE/kubectl"
-                    fi
-                '''
                 script {
-                    env.PATH = "${env.WORKSPACE}:${env.PATH}"
+                    if (!fileExists("$WORKSPACE/kubectl")) {
+                        sh '''
+                            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                            chmod +x kubectl
+                        '''
+                    } else {
+                        echo 'Kubectl is already installed.'
+                    }
                 }
             }
         }
